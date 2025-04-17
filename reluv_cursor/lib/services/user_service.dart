@@ -26,6 +26,9 @@ class UserService {
         final contents = await file.readAsString();
         final List<dynamic> jsonList = json.decode(contents);
         _users = jsonList.map((json) => User.fromJson(json)).toList();
+        print('Loaded ${_users.length} users'); // Debug print
+      } else {
+        print('No users file found'); // Debug print
       }
     } catch (e) {
       print('Error loading users: $e');
@@ -40,6 +43,7 @@ class UserService {
       
       final jsonList = _users.map((user) => user.toJson()).toList();
       await file.writeAsString(json.encode(jsonList));
+      print('Saved ${_users.length} users'); // Debug print
     } catch (e) {
       print('Error saving users: $e');
     }
@@ -51,7 +55,7 @@ class UserService {
     }
     
     // Check if user already exists
-    if (_users.any((u) => u.email == user.email)) {
+    if (_users.any((u) => u.email.toLowerCase() == user.email.toLowerCase())) {
       return false;
     }
 
@@ -65,12 +69,19 @@ class UserService {
       await _initialize();
     }
 
+    print('Attempting login with email: $email'); // Debug print
+    print('Total users: ${_users.length}'); // Debug print
+
     try {
       final user = _users.firstWhere(
-        (user) => user.email == email && user.password == password,
+        (user) => 
+          user.email.toLowerCase() == email.toLowerCase() && 
+          user.password == password,
       );
+      print('Login successful for user: ${user.name}'); // Debug print
       return user;
     } catch (e) {
+      print('Login failed: $e'); // Debug print
       return null;
     }
   }
@@ -79,6 +90,6 @@ class UserService {
     if (!_isInitialized) {
       await _initialize();
     }
-    return _users.any((user) => user.email == email);
+    return _users.any((user) => user.email.toLowerCase() == email.toLowerCase());
   }
 } 
